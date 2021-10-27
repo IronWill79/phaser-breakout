@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "target": "es5",
+    "sourceMap": true,
+    "paths": {
+      "@/config": ["config/index.ts"],
+      "@/entities": ["entities/index.ts"],
+      "@/scenes": ["scenes/index.ts"],
+      "@/types": ["types/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
