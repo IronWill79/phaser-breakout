@@ -25,22 +25,15 @@ module.exports = {
   },
   mode: process.env.NODE_ENV == 'production' ? 'production' : 'development',
   devtool: 'inline-source-map',
-  devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
-    compress: true,
-    open: true,
-  },
   plugins: [
     new CopyPlugin({
       patterns: [
         {
           from: 'index.html',
         },
-        // {
-        //   from: 'assets/**/*',
-        // },
+        {
+          from: 'assets/**/*',
+        },
       ],
     }),
     new webpack.DefinePlugin({

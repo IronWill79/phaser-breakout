@@ -3,3 +3,4 @@ export type PhysicsGameObject = PhysicsBody<Phaser.GameObjects.GameObject>;
 
 export type PhysicsRectangle = PhysicsBody<Phaser.GameObjects.Rectangle>;
 export type PhysicsEllipse = PhysicsBody<Phaser.GameObjects.Ellipse>;
+export type PhysicsSprite = PhysicsBody<Phaser.GameObjects.Sprite>;

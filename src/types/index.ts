@@ -1,1 +1,7 @@
-export type { PhysicsBody, PhysicsRectangle } from './GameObjects';
+export type {
+  PhysicsBody,
+  PhysicsEllipse,
+  PhysicsGameObject,
+  PhysicsRectangle,
+  PhysicsSprite,
+} from './GameObjects';
