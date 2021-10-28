@@ -1,4 +1,4 @@
-import { PhysicsSprite } from '@/types';
+import { AnimatedPhysicsSprite, PhysicsSprite } from '@/types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -21,7 +21,7 @@ type BrickInfo = {
 };
 
 export class GameScene extends Phaser.Scene {
-  private ball: PhysicsSprite & Phaser.Animations.AnimationState;
+  private ball: AnimatedPhysicsSprite;
   private paddle: PhysicsSprite;
   private bricks: Phaser.GameObjects.Group;
   private scoreText: Phaser.GameObjects.Text;
