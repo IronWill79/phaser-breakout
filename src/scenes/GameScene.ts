@@ -29,6 +29,8 @@ export class GameScene extends Phaser.Scene {
   private lives = 3;
   private livesText: Phaser.GameObjects.Text;
   private lifeLostText: Phaser.GameObjects.Text;
+  private playing = false;
+  private startButton: Phaser.GameObjects.Sprite;
 
   constructor() {
     super(sceneConfig);
@@ -48,6 +50,10 @@ export class GameScene extends Phaser.Scene {
       frameWidth: 20,
       frameHeight: 20,
     });
+    this.load.spritesheet('button', 'button.png', {
+      frameWidth: 120,
+      frameHeight: 40,
+    });
   }
 
   public create() {
@@ -66,14 +72,14 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.existing(this.ball);
     this.ball.body.setCollideWorldBounds(true, undefined, undefined, true);
     this.ball.body.setBounce(1, 1);
-    this.ball.body.setVelocity(150, -150);
 
-    this.paddle = this.add.sprite(
-      this.sys.canvas.width * 0.5,
-      this.sys.canvas.height - 5,
-      'paddle'
-    ) as PhysicsSprite;
-    this.paddle.setOrigin(0.5, 1);
+    this.paddle = (
+      this.add.sprite(
+        this.sys.canvas.width * 0.5,
+        this.sys.canvas.height - 5,
+        'paddle'
+      ) as PhysicsSprite
+    ).setOrigin(0.5, 1);
     this.physics.add.existing(this.paddle);
     this.paddle.body.immovable = true;
 
@@ -85,47 +91,86 @@ export class GameScene extends Phaser.Scene {
 
     this.scoreText = this.add.text(5, 5, 'Points: 0', textStyle);
 
-    this.livesText = this.add.text(
-      this.sys.canvas.width - 5,
-      5,
-      `Lives: ${this.lives}`,
-      textStyle
-    );
-    this.livesText.setOrigin(1, 0);
+    this.livesText = this.add
+      .text(this.sys.canvas.width - 5, 5, `Lives: ${this.lives}`, textStyle)
+      .setOrigin(1, 0);
 
-    this.lifeLostText = this.add.text(
-      this.sys.canvas.width * 0.5,
-      this.sys.canvas.height * 0.5,
-      'Life lost, click to continue'
-    );
-    this.lifeLostText.setOrigin(0.5, 0.5);
-    this.lifeLostText.setVisible(false);
+    this.lifeLostText = this.add
+      .text(
+        this.sys.canvas.width * 0.5,
+        this.sys.canvas.height * 0.5,
+        'Life lost, click to continue'
+      )
+      .setOrigin(0.5, 0.5)
+      .setVisible(false);
+
+    this.startButton = this.add
+      .sprite(
+        this.sys.canvas.width * 0.5,
+        this.sys.canvas.height * 0.5,
+        'button',
+        0
+      )
+      .setInteractive()
+      .on('pointerover', () => {
+        this.startButton.setFrame(1);
+      })
+      .on('pointerdown', () => {
+        this.startButton.setFrame(2);
+        this.startGame();
+      })
+      .on('pointerout', () => {
+        this.startButton.setFrame(0);
+      })
+      .setOrigin(0.5, 0.5);
   }
 
   public update() {
-    this.physics.collide(this.ball, this.paddle, this.ballHitPaddle.bind(this));
-    this.physics.collide(this.ball, this.bricks, this.ballHitBrick.bind(this));
-    this.paddle.x = this.input.x || this.sys.canvas.width * 0.5;
+    if (this.playing) {
+      this.physics.collide(
+        this.ball,
+        this.paddle,
+        this.ballHitPaddle.bind(this)
+      );
+      this.physics.collide(
+        this.ball,
+        this.bricks,
+        this.ballHitBrick.bind(this)
+      );
+      this.paddle.x = this.input.x || this.sys.canvas.width * 0.5;
+    }
   }
 
   private ballHitPaddle(): void {
     this.anims.play('wobble', this.ball);
+    this.ball.body.setVelocityX(-1 * 5 * (this.paddle.x - this.ball.x));
   }
 
   private ballHitBrick(ball: PhysicsSprite, brick: PhysicsSprite): void {
+    const onCompleteHandler = (
+      tween: Phaser.Tweens.Tween,
+      targets: any[],
+      brick: PhysicsSprite
+    ): Phaser.Types.Tweens.TweenOnCompleteCallback => {
+      brick.destroy();
+      tween.stop();
+      if (this.score == 210) {
+        alert('You won the game, congratulations!');
+        location.reload();
+      }
+      return;
+    };
+
+    let killTween = this.tweens.add({
+      targets: brick,
+      scale: 0,
+      duration: 200,
+      onComplete: onCompleteHandler,
+      onCompleteParams: [brick],
+    });
+
     this.score += 10;
     this.scoreText = this.scoreText.setText(`Points: ${this.score}`);
-
-    let count_alive = 0;
-    for (let i = 0; i < this.bricks.children.size; i++) {
-      if (this.bricks.children.entries[i].active == true) {
-        count_alive++;
-      }
-    }
-    if (count_alive == 0) {
-      alert('You won the game, congratulations!');
-      location.reload();
-    }
   }
 
   private initBricks(): void {
@@ -194,5 +239,11 @@ export class GameScene extends Phaser.Scene {
         location.reload();
       }
     }
+  }
+
+  private startGame(): void {
+    this.startButton.destroy();
+    this.ball.body.setVelocity(150, -150);
+    this.playing = true;
   }
 }
