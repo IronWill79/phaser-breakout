@@ -1,4 +1,4 @@
-type GameConfig = {
+export type GameConfig = {
   title: string;
   width?: number;
   height?: number;

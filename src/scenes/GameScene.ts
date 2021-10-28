@@ -6,9 +6,26 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   key: 'Game',
 };
 
+type BrickInfo = {
+  width: number;
+  height: number;
+  count: {
+    row: number;
+    col: number;
+  };
+  offset: {
+    top: number;
+    left: number;
+  };
+  padding: number;
+};
+
 export class GameScene extends Phaser.Scene {
   private ball: PhysicsSprite;
   private paddle: PhysicsSprite;
+  private bricks: Phaser.GameObjects.Group;
+  private scoreText: Phaser.GameObjects.Text;
+  private score: number = 0;
 
   constructor() {
     super(sceneConfig);
@@ -23,6 +40,7 @@ export class GameScene extends Phaser.Scene {
     this.load.path = 'assets/';
     this.load.image('ball');
     this.load.image('paddle');
+    this.load.image('brick');
   }
 
   public create() {
@@ -45,8 +63,6 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.existing(this.paddle);
     this.paddle.body.immovable = true;
 
-    // this.physics.world.checkCollision.down = false;
-
     this.physics.world.on(
       'worldbounds',
       function (
@@ -62,10 +78,71 @@ export class GameScene extends Phaser.Scene {
         }
       }
     );
+
+    this.initBricks();
+
+    this.scoreText = this.add.text(5, 5, 'Points: 0', {
+      font: '18px Arial',
+      color: '#0095DD',
+    });
   }
 
   public update() {
     this.physics.collide(this.ball, this.paddle);
+    this.physics.collide(this.ball, this.bricks, this.ballHitBrick.bind(this));
     this.paddle.x = this.input.x || this.sys.canvas.width * 0.5;
+  }
+
+  private ballHitBrick(ball: PhysicsSprite, brick: PhysicsSprite): void {
+    brick.destroy();
+    this.score += 10;
+    this.scoreText = this.scoreText.setText(`Points: ${this.score}`);
+
+    let count_alive = 0;
+    for (let i = 0; i < this.bricks.children.size; i++) {
+      if (this.bricks.children.entries[i].active == true) {
+        count_alive++;
+      }
+    }
+    if (count_alive == 0) {
+      alert('You won the game, congratulations!');
+      location.reload();
+    }
+  }
+
+  private initBricks(): void {
+    const brickInfo: BrickInfo = {
+      width: 50,
+      height: 20,
+      count: {
+        row: 3,
+        col: 7,
+      },
+      offset: {
+        top: 50,
+        left: 60,
+      },
+      padding: 10,
+    };
+
+    this.bricks = this.add.group();
+
+    for (let c = 0; c < brickInfo.count.col; c++) {
+      for (let r = 0; r < brickInfo.count.row; r++) {
+        let brickX =
+          c * (brickInfo.width + brickInfo.padding) + brickInfo.offset.left;
+        let brickY =
+          r * (brickInfo.height + brickInfo.padding) + brickInfo.offset.top;
+        const newBrick = this.add.sprite(
+          brickX,
+          brickY,
+          'brick'
+        ) as PhysicsSprite;
+        this.physics.add.existing(newBrick);
+        newBrick.body.immovable = true;
+        newBrick.setOrigin(0.5, 0.5);
+        this.bricks.add(newBrick);
+      }
+    }
   }
 }
