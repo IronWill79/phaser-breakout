@@ -10,5 +10,5 @@
       "@/types": ["types/index.ts"]
     }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/entities/ballSprite.d.ts"]
 }

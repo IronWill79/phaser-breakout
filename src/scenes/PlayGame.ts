@@ -1,3 +1,5 @@
+import '../entities/factories';
+import { BallSprite, PaddleSprite } from '@/entities';
 import { AnimatedPhysicsSprite, PhysicsSprite } from '@/types';
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
@@ -20,7 +22,7 @@ type BrickInfo = {
   padding: number;
 };
 
-export class GameScene extends Phaser.Scene {
+export class PlayGame extends Phaser.Scene {
   private ball: AnimatedPhysicsSprite;
   private paddle: PhysicsSprite;
   private bricks: Phaser.GameObjects.Group;
@@ -38,47 +40,16 @@ export class GameScene extends Phaser.Scene {
 
   public init() {}
 
-  public preload() {
-    this.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
-    this.scale.autoCenter = Phaser.Scale.CENTER_BOTH;
-
-    this.load.path = 'assets/';
-    this.load.image('ball');
-    this.load.image('paddle');
-    this.load.image('brick');
-    this.load.spritesheet('wobble', 'wobble.png', {
-      frameWidth: 20,
-      frameHeight: 20,
-    });
-    this.load.spritesheet('button', 'button.png', {
-      frameWidth: 120,
-      frameHeight: 40,
-    });
-  }
+  public preload() {}
 
   public create() {
-    this.ball = this.add.sprite(
-      this.sys.canvas.width * 0.5,
-      this.sys.canvas.height - 25,
-      'ball'
-    ) as PhysicsSprite & Phaser.Animations.AnimationState;
-    this.anims.create({
-      key: 'wobble',
-      frames: this.ball.anims.generateFrameNumbers('wobble', {
-        frames: [0, 1, 0, 2, 0, 1, 0, 2, 0],
-      }),
-      frameRate: 12,
-    });
-    this.physics.add.existing(this.ball);
-    this.ball.body.setCollideWorldBounds(true, undefined, undefined, true);
-    this.ball.body.setBounce(1, 1);
+    const { height, width } = this.sys.canvas;
+
+    // @ts-ignore
+    this.ball = this.add.ballSprite();
 
     this.paddle = (
-      this.add.sprite(
-        this.sys.canvas.width * 0.5,
-        this.sys.canvas.height - 5,
-        'paddle'
-      ) as PhysicsSprite
+      this.add.sprite(width * 0.5, height - 5, 'paddle') as PhysicsSprite
     ).setOrigin(0.5, 1);
     this.physics.add.existing(this.paddle);
     this.paddle.body.immovable = true;
@@ -92,25 +63,16 @@ export class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(5, 5, 'Points: 0', textStyle);
 
     this.livesText = this.add
-      .text(this.sys.canvas.width - 5, 5, `Lives: ${this.lives}`, textStyle)
+      .text(width - 5, 5, `Lives: ${this.lives}`, textStyle)
       .setOrigin(1, 0);
 
     this.lifeLostText = this.add
-      .text(
-        this.sys.canvas.width * 0.5,
-        this.sys.canvas.height * 0.5,
-        'Life lost, click to continue'
-      )
+      .text(width * 0.5, height * 0.5, 'Life lost, click to continue')
       .setOrigin(0.5, 0.5)
       .setVisible(false);
 
     this.startButton = this.add
-      .sprite(
-        this.sys.canvas.width * 0.5,
-        this.sys.canvas.height * 0.5,
-        'button',
-        0
-      )
+      .sprite(width * 0.5, height * 0.5, 'button', 0)
       .setInteractive()
       .on('pointerover', () => {
         this.startButton.setFrame(1);
@@ -126,18 +88,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   public update() {
+    const { width } = this.sys.canvas;
+
     if (this.playing) {
       this.physics.collide(
         this.ball,
         this.paddle,
-        this.ballHitPaddle.bind(this)
+        this.ballHitPaddle.bind(this),
       );
       this.physics.collide(
         this.ball,
         this.bricks,
-        this.ballHitBrick.bind(this)
+        this.ballHitBrick.bind(this),
       );
-      this.paddle.x = this.input.x || this.sys.canvas.width * 0.5;
+      this.paddle.x = this.input.x || width * 0.5;
     }
   }
 
@@ -150,7 +114,7 @@ export class GameScene extends Phaser.Scene {
     const onCompleteHandler = (
       tween: Phaser.Tweens.Tween,
       targets: any[],
-      brick: PhysicsSprite
+      brick: PhysicsSprite,
     ): Phaser.Types.Tweens.TweenOnCompleteCallback => {
       brick.destroy();
       tween.stop();
@@ -199,7 +163,7 @@ export class GameScene extends Phaser.Scene {
         const newBrick = this.add.sprite(
           brickX,
           brickY,
-          'brick'
+          'brick',
         ) as PhysicsSprite;
         this.physics.add.existing(newBrick);
         newBrick.body.immovable = true;
@@ -214,22 +178,19 @@ export class GameScene extends Phaser.Scene {
     up: boolean,
     down: boolean,
     left: boolean,
-    right: boolean
+    right: boolean,
   ): void {
     if (down) {
       this.lives--;
+
       if (this.lives) {
+        const { height, width } = this.sys.canvas;
+
         this.livesText = this.livesText.setText(`Lives: ${this.lives}`);
         this.lifeLostText.setVisible(true);
-        this.ball.setPosition(
-          this.sys.canvas.width * 0.5,
-          this.sys.canvas.height - 25
-        );
+        this.ball.setPosition(width * 0.5, height - 25);
         this.ball.body.setVelocity(0, 0);
-        this.paddle.setPosition(
-          this.sys.canvas.width * 0.5,
-          this.sys.canvas.height - 5
-        );
+        this.paddle.setPosition(width * 0.5, height - 5);
         this.input.once('pointerdown', () => {
           this.lifeLostText.setVisible(false);
           this.ball.body.setVelocity(150, -150);

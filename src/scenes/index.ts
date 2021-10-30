@@ -1,1 +1,2 @@
-export { GameScene } from './GameScene';
+export { PlayGame } from './PlayGame';
+export { PreloadAssets } from './PreloadAssets';

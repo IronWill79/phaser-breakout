@@ -1,13 +1,32 @@
 import * as Phaser from 'phaser';
-import { gameConfig, GameConfig } from '@/config';
-import { GameScene } from '@/scenes';
+import { PreloadAssets, PlayGame } from '@/scenes';
+import { GameOptions } from '@/config';
 
-const config: GameConfig = {
-  scene: new GameScene(),
-  title: 'Phaser game',
-  backgroundColor: '#000000',
-  height: 320,
-  width: 480,
+// object to initialize the Scale Manager
+const scaleObject: Phaser.Types.Core.ScaleConfig = {
+  mode: Phaser.Scale.FIT,
+  autoCenter: Phaser.Scale.CENTER_BOTH,
+  parent: 'game',
+  width: GameOptions.gameSize.width,
+  height: GameOptions.gameSize.height,
 };
 
-export const game = new Phaser.Game(gameConfig(config));
+// object to initialize Arcade physics
+const physicsObject: Phaser.Types.Core.PhysicsConfig = {
+  default: 'arcade',
+  arcade: {
+    debug: process.env.NODE_ENV === 'production' ? false : true,
+  },
+};
+
+// game configuration object
+const configObject: Phaser.Types.Core.GameConfig = {
+  type: Phaser.AUTO,
+  backgroundColor: 0x444444,
+  scale: scaleObject,
+  scene: [PreloadAssets, PlayGame],
+  physics: physicsObject,
+  pixelArt: true,
+};
+
+export const game = new Phaser.Game(configObject);

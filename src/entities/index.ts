@@ -1,2 +1,5 @@
 // import GameObjects for export here
-export { Ball } from './Ball';
+import BallSprite from './ballSprite';
+import PaddleSprite from './paddleSprite';
+
+export { BallSprite, PaddleSprite };
